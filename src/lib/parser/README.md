@@ -6,3 +6,6 @@
 | unary      | ( `-` \| `+` \| `!` ) expression                                       |
 | binary     | expression operator expression                                         |
 | operator   | `==` \| `!=` \| `<` \| `<=` \| `>` \| `>=` \| `+` \| `-` \| `*` \| `/` |
+| comparison | term ( ( `>` \| `>=` \| `<` \| `<=` ) term ) \*                        |
+| unary      | ( `!` \| `+` \| `-` ) \| primary                                       |
+| primary    | NUMBER \| STRING \| BOOLEAN \| `null` \| `(` expression `)`            |
