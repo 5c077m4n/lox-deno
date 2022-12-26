@@ -32,7 +32,9 @@ export function* scan(
 
 			if (result) {
 				const { tail, ...tokenValue } = result;
-				yield { ...tokenValue, position };
+				if (tokenValue.token !== "TAB" && tokenValue.token !== "SPACE") {
+					yield { ...tokenValue, position };
+				}
 
 				currentInput = tail;
 				position += tokenValue.value.length;
