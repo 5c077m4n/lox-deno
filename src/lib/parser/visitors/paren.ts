@@ -1,6 +1,6 @@
 import { Binary, Expr, Grouping, Literal, Unary, Visitor } from "../types.ts";
 
-export class ParenthesizeVisitor implements Visitor<string> {
+export class Parenthesize implements Visitor<string> {
 	private parenthesize(name: string, ...exprs: Expr[]): string {
 		return `( ${name} ${exprs.map((e) => e.accept(this)).join(" ")} )`;
 	}
