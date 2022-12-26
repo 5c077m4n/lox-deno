@@ -42,4 +42,5 @@ export function* scan(
 			}
 		}
 	}
+	yield { category: "MISC", token: "END_OF_FILE", position, value: "" };
 }

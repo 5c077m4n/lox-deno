@@ -9,28 +9,15 @@ export class Parser {
 		this.advance();
 	}
 
-	private advance(): void {
-		const token = this.tokens.next();
-		if (!token.done) {
-			this.history.push(token.value);
-		} else {
-			this.history.push({
-				category: "MISC",
-				token: "END_OF_FILE",
-				value: "",
-				position: this.current().position,
-			});
-		}
-	}
 	private previous(): TTokenType {
-		const prev = this.history[this.history.length - 2];
+		const prev = this.history.at(-2);
 		if (!prev) {
 			throw Error("Could not get the previous token");
 		}
 		return prev;
 	}
 	private current(): TTokenType {
-		const prev = this.history[this.history.length - 1];
+		const prev = this.history.at(-1);
 		if (!prev) {
 			throw Error("Could not get the current token");
 		}
@@ -39,6 +26,12 @@ export class Parser {
 	private isAtEnd(): boolean {
 		const { category, token } = this.current();
 		return category === "MISC" && token === "END_OF_FILE";
+	}
+	private advance(): void {
+		const token = this.tokens.next();
+		if (!token.done) {
+			this.history.push(token.value);
+		}
 	}
 	private check(token: TTokenType["token"]): boolean {
 		if (this.isAtEnd()) return false;
