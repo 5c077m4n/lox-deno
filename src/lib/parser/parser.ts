@@ -1,5 +1,6 @@
 import { TAnyDetectionResult as TTokenType } from "../lexer/scan.ts";
-import { Binary, Expr, Grouping, Literal, Unary } from "./types.ts";
+import { Binary, Expr, Grouping, Literal, Unary } from "./types/expr.ts";
+import { Expression, Print, Stmt } from "./types/stmt.ts";
 
 export class Parser {
 	private history: TTokenType[] = [];
@@ -50,7 +51,7 @@ export class Parser {
 		if (this.check(token)) {
 			return this.advance();
 		} else {
-			throw TypeError(message + " " + this.current());
+			throw TypeError(message + " " + JSON.stringify(this.current()));
 		}
 	}
 	private sync(): void {
@@ -63,7 +64,9 @@ export class Parser {
 				token === "CLASS" || token === "FUNCTION" || token === "CONST" || token === "LET" ||
 				token === "FOR" || token === "IF" || token === "WHILE" || token === "PRINT" ||
 				token === "RETURN"
-			) return;
+			) {
+				return;
+			}
 			this.advance();
 		}
 	}
@@ -92,7 +95,7 @@ export class Parser {
 			this.assertNext("BRACKET_CLOSE", "Expected a `)` after the expression");
 			return new Grouping(expr);
 		} else {
-			throw TypeError(`Expected an expression but got ${this.current()}`);
+			throw TypeError(`Expected an expression but got '${JSON.stringify(this.current())}'`);
 		}
 	}
 	private unary(): Expr {
@@ -161,14 +164,38 @@ export class Parser {
 		return this.equality();
 	}
 
+	private printStmt(): Stmt {
+		const value = this.expression();
+		this.assertNext("SEMICOLON", "Expected a `;` after the print expression");
+		return new Print(value);
+	}
+	private expressionStmt(): Stmt {
+		const value = this.expression();
+		this.assertNext("SEMICOLON", "Expected a `;` after the expression");
+		return new Expression(value);
+	}
+	private statement(): Stmt {
+		if (this.match("PRINT")) {
+			return this.printStmt();
+		} else {
+			return this.expressionStmt();
+		}
+	}
+
+	public parse(): Stmt[] {
+		const statments: Stmt[] = [];
+		while (!this.isAtEnd()) {
+			try {
+				const stmt = this.statement();
+				statments.push(stmt);
+			} catch (e) {
+				this.errors.push(e);
+				this.sync();
+			}
+		}
+		return statments;
+	}
 	public getErrors(): Error[] {
 		return this.errors;
-	}
-	public parse(): Expr | undefined {
-		try {
-			return this.expression();
-		} catch (e) {
-			this.errors.push(e);
-		}
 	}
 }

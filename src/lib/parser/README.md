@@ -1,3 +1,5 @@
+# Expressions
+
 | name       | value                                                                  |
 | ---------- | ---------------------------------------------------------------------- |
 | expression | literal \| unary \| binary \| grouping                                 |
@@ -9,3 +11,12 @@
 | comparison | term ( ( `>` \| `>=` \| `<` \| `<=` ) term ) \*                        |
 | unary      | ( `!` \| `+` \| `-` ) \| primary                                       |
 | primary    | NUMBER \| STRING \| BOOLEAN \| `null` \| `(` expression `)`            |
+
+# Statements
+
+| name      | value                  |
+| --------- | ---------------------- |
+| program   | statement \* EOF       |
+| statement | exprStmt \| printStmt  |
+| exprStmt  | expression `;`         |
+| printStmt | `print` expression `;` |

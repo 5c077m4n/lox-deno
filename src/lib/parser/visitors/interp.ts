@@ -1,15 +1,19 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor } from "../types.ts";
+import { Binary, Expr, ExprVisitor, Grouping, Literal, Unary } from "../types/expr.ts";
+import { Expression, Print, Stmt, StmtVisitor } from "../types/stmt.ts";
 
-export class Interpreter implements Visitor<Literal> {
-	evaluate(expr: Expr): Literal {
+export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
+	private evaluate(expr: Expr): Literal {
 		return expr.accept(this);
 	}
+	execute(stmt: Stmt): Literal {
+		return stmt.accept(this);
+	}
 
-	visitBinary(expr: Binary): Literal {
-		const left = this.evaluate(expr.left);
-		const right = this.evaluate(expr.right);
+	visitBinary(binary: Binary): Literal {
+		const left = this.evaluate(binary.left);
+		const right = this.evaluate(binary.right);
 
-		switch (expr.op) {
+		switch (binary.op) {
 			case "+": {
 				if (typeof left.value === "number" && typeof right.value === "number") {
 					return new Literal(left.value + right.value);
@@ -90,19 +94,19 @@ export class Interpreter implements Visitor<Literal> {
 				throw Error(`Cannot compare type ${typeof left.value} to ${typeof right.value}`);
 			}
 			default: {
-				throw Error(`Unknown binary operator recieved: ${expr.op}`);
+				throw Error(`Unknown binary operator recieved: ${binary.op}`);
 			}
 		}
 	}
-	visitGrouping(expr: Grouping): Literal {
-		return this.evaluate(expr);
+	visitGrouping(group: Grouping): Literal {
+		return this.evaluate(group.expr);
 	}
-	visitLiteral(expr: Literal): Literal {
-		return expr;
+	visitLiteral(lit: Literal): Literal {
+		return lit;
 	}
-	visitUnary(expr: Unary): Literal {
-		const right = this.evaluate(expr.right);
-		switch (expr.op) {
+	visitUnary(unary: Unary): Literal {
+		const right = this.evaluate(unary.right);
+		switch (unary.op) {
 			case "!": {
 				return new Literal(!right.isTruthy());
 			}
@@ -123,8 +127,17 @@ export class Interpreter implements Visitor<Literal> {
 				throw Error(`Could not negeate type ${typeof right.value}`);
 			}
 			default: {
-				throw Error(`Unknown unary operator recieved: ${expr.op}`);
+				throw Error(`Unknown unary operator recieved: ${unary.op}`);
 			}
 		}
+	}
+
+	visitExpression(exprStmt: Expression): Literal {
+		return this.evaluate(exprStmt.expr);
+	}
+	visitPrint(printStmt: Print): Literal {
+		const value = this.evaluate(printStmt.expr);
+		console.log(value);
+		return value;
 	}
 }
