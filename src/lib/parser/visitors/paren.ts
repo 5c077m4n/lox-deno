@@ -1,7 +1,7 @@
 import { Binary, Expr, ExprVisitor, Grouping, Literal, Unary, Variable } from "../types/expr.ts";
 import { Expression, Print, Stmt, StmtVisitor, VariableDeclaration } from "../types/stmt.ts";
 
-export class Parenthesize implements ExprVisitor<string> {
+export class Parenthesize implements ExprVisitor<string>, StmtVisitor<string> {
 	private parenthesize(name: string, ...exprs: Expr[]): string {
 		return `( ${name} ${exprs.map((e) => e.accept(this)).join(" ")} )`;
 	}
@@ -52,7 +52,7 @@ export class Parenthesize implements ExprVisitor<string> {
 		return this.parenthesize("variable " + expr.name);
 	}
 
-	print(expr: Expr): string {
+	print(expr: Stmt): string {
 		return expr.accept(this);
 	}
 }
