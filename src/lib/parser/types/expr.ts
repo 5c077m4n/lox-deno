@@ -7,6 +7,7 @@ export interface ExprVisitor<TReturn = void> {
 	visitGrouping(expr: Grouping): TReturn;
 	visitLiteral(expr: Literal): TReturn;
 	visitUnary(expr: Unary): TReturn;
+	visitVariable(expr: Variable): TReturn;
 }
 export interface Expr {
 	accept<V>(visitor: ExprVisitor<V>): V;
@@ -43,5 +44,11 @@ export class Unary implements Expr {
 	constructor(public readonly op: Operator, public readonly right: Expr) {}
 	accept<V>(visitor: ExprVisitor<V>): V {
 		return visitor.visitUnary(this);
+	}
+}
+export class Variable implements Expr {
+	constructor(public readonly name: string) {}
+	accept<V>(visitor: ExprVisitor<V>): V {
+		return visitor.visitVariable(this);
 	}
 }

@@ -1,7 +1,10 @@
-import { Binary, Expr, ExprVisitor, Grouping, Literal, Unary } from "../types/expr.ts";
-import { Expression, Print, Stmt, StmtVisitor } from "../types/stmt.ts";
+import { Env } from "../env.ts";
+import { Binary, Expr, ExprVisitor, Grouping, Literal, Unary, Variable } from "../types/expr.ts";
+import { Expression, Print, Stmt, StmtVisitor, VariableDeclaration } from "../types/stmt.ts";
 
 export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
+	private env: Env = new Env();
+
 	private evaluate(expr: Expr): Literal {
 		return expr.accept(this);
 	}
@@ -131,6 +134,9 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 			}
 		}
 	}
+	visitVariable({ name }: Variable): Literal {
+		return this.env.get(name);
+	}
 
 	visitExpression(exprStmt: Expression): Literal {
 		return this.evaluate(exprStmt.expr);
@@ -139,5 +145,16 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 		const value = this.evaluate(printStmt.expr);
 		console.log(value);
 		return value;
+	}
+	visitVariableDeclaration({ name, init }: VariableDeclaration): Literal {
+		let initLiteral: Literal;
+		if (init) {
+			initLiteral = this.evaluate(init);
+		} else {
+			initLiteral = new Literal(null);
+		}
+		this.env.define(name, initLiteral);
+
+		return new Literal(null);
 	}
 }

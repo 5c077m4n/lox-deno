@@ -34,7 +34,7 @@ async function main() {
 
 	for (const stmt of stmts) {
 		if (printAst) {
-			const paren = PRINTER.print(stmt.expr);
+			const paren = PRINTER.print(stmt);
 			console.log(paren);
 		}
 		INTERPRETER.execute(stmt);

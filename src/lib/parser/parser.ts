@@ -1,6 +1,6 @@
 import { TAnyDetectionResult as TTokenType } from "../lexer/scan.ts";
-import { Binary, Expr, Grouping, Literal, Unary } from "./types/expr.ts";
-import { Expression, Print, Stmt } from "./types/stmt.ts";
+import { Binary, Expr, Grouping, Literal, Unary, Variable } from "./types/expr.ts";
+import { Expression, Print, Stmt, VariableDeclaration } from "./types/stmt.ts";
 
 export class Parser {
 	private history: TTokenType[] = [];
@@ -47,9 +47,10 @@ export class Parser {
 		}
 		return false;
 	}
-	private assertNext(token: TTokenType["token"], message: string) {
+	private assertNext(token: TTokenType["token"], message: string): TTokenType {
 		if (this.check(token)) {
-			return this.advance();
+			this.advance();
+			return this.previous();
 		} else {
 			throw TypeError(message + " " + JSON.stringify(this.current()));
 		}
@@ -94,6 +95,9 @@ export class Parser {
 			const expr = this.expression();
 			this.assertNext("BRACKET_CLOSE", "Expected a `)` after the expression");
 			return new Grouping(expr);
+		} else if (this.match("IDENTIFIER")) {
+			const { value } = this.previous();
+			return new Variable(value);
 		} else {
 			throw TypeError(`Expected an expression but got '${JSON.stringify(this.current())}'`);
 		}
@@ -181,12 +185,30 @@ export class Parser {
 			return this.expressionStmt();
 		}
 	}
+	private varDecl(): Stmt {
+		const name = this.assertNext("IDENTIFIER", "Expected a variable's name");
+
+		let init: Expr | undefined;
+		if (this.match("EQ")) {
+			init = this.expression();
+		}
+
+		this.assertNext("SEMICOLON", "Expected a `;` after a variable declaration");
+		return new VariableDeclaration(name.value, init);
+	}
+	private declaration(): Stmt {
+		if (this.match("CONST", "LET")) {
+			return this.varDecl();
+		} else {
+			return this.statement();
+		}
+	}
 
 	public parse(): Stmt[] {
 		const statments: Stmt[] = [];
 		while (!this.isAtEnd()) {
 			try {
-				const stmt = this.statement();
+				const stmt = this.declaration();
 				statments.push(stmt);
 			} catch (e) {
 				this.errors.push(e);
