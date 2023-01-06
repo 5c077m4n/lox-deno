@@ -1,14 +1,20 @@
 import { Literal } from "./types/expr.ts";
 
 export class Env {
-	private values: Map<string, Literal> = new Map();
+	private readonly values: Map<string, Literal> = new Map();
+
+	constructor(private readonly parent?: Env) {}
 
 	get(name: string): Literal {
 		const value = this.values.get(name);
-		if (!value) {
+
+		if (value) {
+			return value;
+		} else if (this.parent) {
+			return this.parent.get(name);
+		} else {
 			throw Error(`The requested param "${name}" isn't set`);
 		}
-		return value;
 	}
 	define(name: string, value: Literal): void {
 		if (this.values.has(name)) {
