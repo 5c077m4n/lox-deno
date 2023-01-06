@@ -3,6 +3,7 @@
 | name       | value                                                                     |
 | ---------- | ------------------------------------------------------------------------- |
 | expression | literal \| unary \| binary \| grouping                                    |
+| assignment | IDENTIFIER `=` assignment \| equality                                     |
 | literal    | NUMBER \| STRING \| BOOLEAN \| NULL                                       |
 | grouping   | `(` expression `)`                                                        |
 | unary      | ( `-` \| `+` \| `!` ) expression                                          |

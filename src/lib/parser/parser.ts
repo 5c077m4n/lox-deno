@@ -1,5 +1,5 @@
 import { TAnyDetectionResult as TTokenType } from "../lexer/scan.ts";
-import { Binary, Expr, Grouping, Literal, Unary, Variable } from "./types/expr.ts";
+import { Assign, Binary, Expr, Grouping, Literal, Unary, Variable } from "./types/expr.ts";
 import { Expression, Print, Stmt, VariableDeclaration } from "./types/stmt.ts";
 
 export class Parser {
@@ -164,8 +164,23 @@ export class Parser {
 		}
 		return expr;
 	}
+	private assignment(): Expr {
+		const expr = this.equality();
+
+		if (this.match("EQ")) {
+			const equals = this.previous();
+			const value = this.assignment();
+
+			if (expr instanceof Variable) {
+				return new Assign(expr.name, value);
+			} else {
+				throw Error(`Invalid assignment target ${JSON.stringify(equals)}`);
+			}
+		}
+		return expr;
+	}
 	private expression(): Expr {
-		return this.equality();
+		return this.assignment();
 	}
 
 	private printStmt(): Stmt {
