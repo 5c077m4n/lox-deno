@@ -8,7 +8,7 @@ import {
 	Unary,
 	Variable,
 } from "../types/expr.ts";
-import { Expression, Print, Stmt, StmtVisitor, VariableDeclaration } from "../types/stmt.ts";
+import { Block, Expression, Print, Stmt, StmtVisitor, VariableDeclaration } from "../types/stmt.ts";
 
 export class Parenthesize implements ExprVisitor<string>, StmtVisitor<string> {
 	private parenthesize(name: string, ...exprs: Expr[]): string {
@@ -39,7 +39,6 @@ export class Parenthesize implements ExprVisitor<string>, StmtVisitor<string> {
 	visitAssign(expr: Assign): string {
 		return this.parenthesize("assign", expr);
 	}
-
 	visitExpression({ expr }: Expression): string {
 		if (expr instanceof Binary) {
 			return this.visitBinary(expr);
@@ -57,6 +56,10 @@ export class Parenthesize implements ExprVisitor<string>, StmtVisitor<string> {
 			throw Error(`Unknown expression: ${JSON.stringify(expr)}`);
 		}
 	}
+
+	visitStatement(stmt: Stmt): string {
+		throw Error("Unimplemented");
+	}
 	visitPrint(print: Print): string {
 		return this.parenthesize("print", print.expr);
 	}
@@ -66,6 +69,14 @@ export class Parenthesize implements ExprVisitor<string>, StmtVisitor<string> {
 		} else {
 			return this.parenthesize(name);
 		}
+	}
+	visitBlock(block: Block): string {
+		const blockStrings: string[] = [];
+		for (const stmt of block.statments) {
+			this.visitStatement(stmt);
+		}
+
+		return blockStrings.join("\n");
 	}
 
 	print(expr: Stmt): string {

@@ -4,6 +4,7 @@ export interface StmtVisitor<TReturn = void> {
 	visitExpression(expr: Expression): TReturn;
 	visitPrint(expr: Print): TReturn;
 	visitVariableDeclaration(expr: VariableDeclaration): TReturn;
+	visitBlock(expr: Block): TReturn;
 }
 export interface Stmt {
 	accept<V>(visitor: StmtVisitor<V>): V;
@@ -25,5 +26,11 @@ export class VariableDeclaration implements Stmt {
 	constructor(public readonly name: string, public readonly init?: Expr) {}
 	accept<V>(visitor: StmtVisitor<V>): V {
 		return visitor.visitVariableDeclaration(this);
+	}
+}
+export class Block implements Stmt {
+	constructor(public readonly statments: Stmt[]) {}
+	accept<V>(visitor: StmtVisitor<V>): V {
+		return visitor.visitBlock(this);
 	}
 }

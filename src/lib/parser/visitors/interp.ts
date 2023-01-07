@@ -9,7 +9,7 @@ import {
 	Unary,
 	Variable,
 } from "../types/expr.ts";
-import { Expression, Print, Stmt, StmtVisitor, VariableDeclaration } from "../types/stmt.ts";
+import { Block, Expression, Print, Stmt, StmtVisitor, VariableDeclaration } from "../types/stmt.ts";
 
 export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 	private env: Env = new Env();
@@ -19,6 +19,19 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 	}
 	execute(stmt: Stmt): Literal {
 		return stmt.accept(this);
+	}
+	executeBlock(block: Stmt[], env: Env): void {
+		const prevEnv = this.env;
+
+		try {
+			this.env = env;
+			for (const stmt of block) {
+				this.execute(stmt);
+			}
+		} catch (e) {
+			console.warn(e);
+		}
+		this.env = prevEnv;
 	}
 
 	visitBinary(binary: Binary): Literal {
@@ -153,11 +166,11 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 		return new Literal(null);
 	}
 
-	visitExpression(exprStmt: Expression): Literal {
-		return this.evaluate(exprStmt.expr);
+	visitExpression({ expr }: Expression): Literal {
+		return this.evaluate(expr);
 	}
-	visitPrint(printStmt: Print): Literal {
-		const value = this.evaluate(printStmt.expr);
+	visitPrint({ expr }: Print): Literal {
+		const value = this.evaluate(expr);
 		console.log(value);
 		return value;
 	}
@@ -170,6 +183,10 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 		}
 		this.env.define(name, initLiteral);
 
+		return new Literal(null);
+	}
+	visitBlock({ statments }: Block): Literal {
+		this.executeBlock(statments, new Env(this.env));
 		return new Literal(null);
 	}
 }

@@ -1,6 +1,6 @@
 import { TAnyDetectionResult as TTokenType } from "../lexer/scan.ts";
 import { Assign, Binary, Expr, Grouping, Literal, Unary, Variable } from "./types/expr.ts";
-import { Expression, Print, Stmt, VariableDeclaration } from "./types/stmt.ts";
+import { Block, Expression, Print, Stmt, VariableDeclaration } from "./types/stmt.ts";
 
 export class Parser {
 	private history: TTokenType[] = [];
@@ -193,9 +193,22 @@ export class Parser {
 		this.assertNext("SEMICOLON", "Expected a `;` after the expression");
 		return new Expression(value);
 	}
+	private block(): Stmt[] {
+		const stmts: Stmt[] = [];
+		while (!this.check("BRACKET_CURLY_CLOSE") && !this.isAtEnd()) {
+			const decl = this.declaration();
+			stmts.push(decl);
+		}
+
+		this.assertNext("BRACKET_CURLY_CLOSE", "Expected `}` after a block");
+		return stmts;
+	}
 	private statement(): Stmt {
 		if (this.match("PRINT")) {
 			return this.printStmt();
+		} else if (this.match("BRACKET_CURLY_OPEN")) {
+			const block = this.block();
+			return new Block(block);
 		} else {
 			return this.expressionStmt();
 		}
@@ -219,7 +232,7 @@ export class Parser {
 		}
 	}
 
-	public parse(): Stmt[] {
+	public parse(): readonly Stmt[] {
 		const statments: Stmt[] = [];
 		while (!this.isAtEnd()) {
 			try {
@@ -232,7 +245,7 @@ export class Parser {
 		}
 		return statments;
 	}
-	public getErrors(): Error[] {
+	public getErrors(): readonly Error[] {
 		return this.errors;
 	}
 }
