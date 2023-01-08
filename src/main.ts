@@ -2,16 +2,13 @@ import { parse } from "flags";
 
 import { scan } from "./lib/lexer/scan.ts";
 import { Parser } from "./lib/parser/parser.ts";
-import { Parenthesize } from "./lib/parser/visitors/paren.ts";
 import { Interpreter } from "./lib/parser/visitors/interp.ts";
 
-const PRINTER = new Parenthesize();
 const INTERPRETER = new Interpreter();
 
 async function main() {
-	const { _: fileName, eval: evaluate, "print-ast": printAst } = parse(Deno.args, {
+	const { _: fileName, eval: evaluate } = parse(Deno.args, {
 		string: ["eval"],
-		boolean: ["print-ast"],
 		default: { "print-ast": false },
 	});
 
@@ -33,10 +30,6 @@ async function main() {
 	}
 
 	for (const stmt of stmts) {
-		if (printAst) {
-			const paren = PRINTER.print(stmt);
-			console.log(paren);
-		}
 		INTERPRETER.execute(stmt);
 	}
 }
