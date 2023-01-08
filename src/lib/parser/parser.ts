@@ -1,6 +1,6 @@
 import { TAnyDetectionResult as TTokenType } from "../lexer/scan.ts";
 import { Assign, Binary, Expr, Grouping, Literal, Unary, Variable } from "./types/expr.ts";
-import { Block, Expression, Print, Stmt, VariableDeclaration } from "./types/stmt.ts";
+import { Block, Expression, If, Print, Stmt, VariableDeclaration } from "./types/stmt.ts";
 
 export class Parser {
 	private history: TTokenType[] = [];
@@ -203,12 +203,27 @@ export class Parser {
 		this.assertNext("BRACKET_CURLY_CLOSE", "Expected `}` after a block");
 		return stmts;
 	}
+	private ifStmt(): Stmt {
+		this.assertNext("BRACKET_OPEN", "Expected a `(` before the if condition");
+		const condition = this.expression();
+		this.assertNext("BRACKET_CLOSE", "Expected a `)` after the if condition");
+		const thenBranch = this.statement();
+
+		let elseBranch: Stmt | undefined;
+		if (this.match("ELSE")) {
+			elseBranch = this.statement();
+		}
+
+		return new If(condition, thenBranch, elseBranch);
+	}
 	private statement(): Stmt {
 		if (this.match("PRINT")) {
 			return this.printStmt();
 		} else if (this.match("BRACKET_CURLY_OPEN")) {
 			const block = this.block();
 			return new Block(block);
+		} else if (this.match("IF")) {
+			return this.ifStmt();
 		} else {
 			return this.expressionStmt();
 		}

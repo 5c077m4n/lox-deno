@@ -9,7 +9,15 @@ import {
 	Unary,
 	Variable,
 } from "../types/expr.ts";
-import { Block, Expression, Print, Stmt, StmtVisitor, VariableDeclaration } from "../types/stmt.ts";
+import {
+	Block,
+	Expression,
+	If,
+	Print,
+	Stmt,
+	StmtVisitor,
+	VariableDeclaration,
+} from "../types/stmt.ts";
 
 export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 	private env: Env = new Env();
@@ -20,18 +28,21 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 	execute(stmt: Stmt): Literal {
 		return stmt.accept(this);
 	}
-	executeBlock(block: Stmt[], env: Env): void {
+	executeBlock(block: Stmt[], env: Env): Literal {
 		const prevEnv = this.env;
 
+		let result: Literal = new Literal(null);
 		try {
 			this.env = env;
 			for (const stmt of block) {
-				this.execute(stmt);
+				result = this.execute(stmt);
 			}
 		} catch (e) {
 			console.warn(e);
 		}
 		this.env = prevEnv;
+
+		return result;
 	}
 
 	visitBinary(binary: Binary): Literal {
@@ -188,5 +199,15 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 	visitBlock({ statments }: Block): Literal {
 		this.executeBlock(statments, new Env(this.env));
 		return new Literal(null);
+	}
+	visitIf({ condition, thenBranch, elseBranch }: If): Literal {
+		const cond = this.evaluate(condition);
+		if (cond.isTruthy()) {
+			return this.execute(thenBranch);
+		} else if (elseBranch) {
+			return this.execute(elseBranch);
+		} else {
+			return new Literal(null);
+		}
 	}
 }

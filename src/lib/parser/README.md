@@ -20,7 +20,8 @@
 | program     | declaration \* EOF                                       |
 | declaration | varDecl \| statement                                     |
 | varDecl     | ( `const` \| `let` ) IDENTIFRIER ( `=` expression )? `;` |
-| statement   | exprStmt \| printStmt \| block                           |
+| statement   | exprStmt \| ifStmt \| printStmt \| block                 |
+| ifStmt      | `if` `(` expression `)` statement ( `else` statement )?  |
 | block       | `{` declaration \* `}`                                   |
 | exprStmt    | expression `;`                                           |
 | printStmt   | `print` expression `;`                                   |
