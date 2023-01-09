@@ -1,5 +1,5 @@
 import { TAnyDetectionResult as TTokenType } from "../lexer/scan.ts";
-import { Assign, Binary, Expr, Grouping, Literal, Unary, Variable } from "./types/expr.ts";
+import { Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable } from "./types/expr.ts";
 import { Block, Expression, If, Print, Stmt, VariableDeclaration } from "./types/stmt.ts";
 
 export class Parser {
@@ -153,6 +153,7 @@ export class Parser {
 	}
 	private equality(): Expr {
 		let expr = this.comparison();
+
 		while (this.match("NOTEQ", "EQEQ")) {
 			const { value: op } = this.previous();
 			if (op !== "!=" && op !== "==") {
@@ -164,8 +165,38 @@ export class Parser {
 		}
 		return expr;
 	}
+	private and(): Expr {
+		let expr = this.equality();
+
+		while (this.match("AND")) {
+			const op = this.previous();
+			const right = this.equality();
+
+			if (op.value === "&&") {
+				expr = new Logical(expr, op.value, right);
+			} else {
+				throw Error("Expected `&&` but got " + JSON.stringify(op));
+			}
+		}
+		return expr;
+	}
+	private or(): Expr {
+		let expr = this.and();
+
+		while (this.match("OR")) {
+			const op = this.previous();
+			const right = this.and();
+
+			if (op.value === "||") {
+				expr = new Logical(expr, op.value, right);
+			} else {
+				throw Error("Expected `||` but got " + JSON.stringify(op));
+			}
+		}
+		return expr;
+	}
 	private assignment(): Expr {
-		const expr = this.equality();
+		const expr = this.or();
 
 		if (this.match("EQ")) {
 			const equals = this.previous();

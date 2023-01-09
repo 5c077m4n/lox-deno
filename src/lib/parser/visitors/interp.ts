@@ -6,6 +6,7 @@ import {
 	ExprVisitor,
 	Grouping,
 	Literal,
+	Logical,
 	Unary,
 	Variable,
 } from "../types/expr.ts";
@@ -175,6 +176,16 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 		this.env.redefine(name, litValue);
 
 		return new Literal(null);
+	}
+	visitLogical(expr: Logical): Literal {
+		const left = this.evaluate(expr.left);
+		if (expr.op === "||") {
+			if (left.isTruthy()) return left;
+		} else {
+			if (!left.isTruthy()) return left;
+		}
+		const right = this.evaluate(expr.right);
+		return right;
 	}
 
 	visitExpression({ expr }: Expression): Literal {

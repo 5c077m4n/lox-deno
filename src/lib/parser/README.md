@@ -2,8 +2,10 @@
 
 | name       | value                                                                     |
 | ---------- | ------------------------------------------------------------------------- |
-| expression | literal \| unary \| binary \| grouping                                    |
-| assignment | IDENTIFIER `=` assignment \| equality                                     |
+| expression | assignment                                                                |
+| assignment | IDENTIFIER `=` assignment \| logic_or                                     |
+| logic_or   | logic_and ( `\|\|` logic_and )\*                                          |
+| logic_and  | equality ( `&&` equality )\*                                              |
 | literal    | NUMBER \| STRING \| BOOLEAN \| NULL                                       |
 | grouping   | `(` expression `)`                                                        |
 | unary      | ( `-` \| `+` \| `!` ) expression                                          |
