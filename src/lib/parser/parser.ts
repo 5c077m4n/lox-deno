@@ -104,50 +104,52 @@ export class Parser {
 	}
 	private unary(): Expr {
 		if (this.match("NOT", "ADD", "SUB")) {
-			const { value: op } = this.previous();
-			if (op !== "!" && op !== "+" && op !== "-") {
+			const op = this.previous();
+			if (op.token !== "NOT" && op.token !== "ADD" && op.token !== "SUB") {
 				throw TypeError(`The unary operator should be '!', '+' or '-', but got ${op}`);
 			}
 			const right = this.unary();
-			return new Unary(op, right);
+			return new Unary(op.token, right);
 		}
 		return this.primary();
 	}
 	private factor(): Expr {
 		let expr = this.unary();
 		while (this.match("MUL", "DIV")) {
-			const { value: op } = this.previous();
-			if (op !== "*" && op !== "/") {
-				throw TypeError(`The factor operator should be '*' or '/', but got ${op}`);
+			const op = this.previous();
+			if (op.token !== "MUL" && op.token !== "DIV") {
+				throw TypeError(`The factor operator should be '*' or '/', but got ${op.value}`);
 			}
 			const right = this.unary();
-			expr = new Binary(expr, op, right);
+			expr = new Binary(expr, op.token, right);
 		}
 		return expr;
 	}
 	private term(): Expr {
 		let expr = this.factor();
 		while (this.match("SUB", "ADD")) {
-			const { value: op } = this.previous();
-			if (op !== "-" && op !== "+") {
-				throw TypeError(`The term operator should be '-' or '+', but got ${op}`);
+			const op = this.previous();
+			if (op.token !== "SUB" && op.token !== "ADD") {
+				throw TypeError(`The term operator should be '-' or '+', but got ${op.value}`);
 			}
 			const right = this.factor();
-			expr = new Binary(expr, op, right);
+			expr = new Binary(expr, op.token, right);
 		}
 		return expr;
 	}
 	private comparison(): Expr {
 		let expr = this.term();
 		while (this.match("GT", "GTE", "LT", "LTE")) {
-			const { value: op } = this.previous();
-			if (op !== ">" && op !== ">=" && op !== "<" && op !== "<=") {
+			const op = this.previous();
+			if (
+				op.token !== "GT" && op.token !== "GTE" && op.token !== "LT" && op.token !== "LTE"
+			) {
 				throw TypeError(
-					`The comparison operator should be '>', '>=', '<' or '<=', but got ${op}`,
+					`The comparison operator should be '>', '>=', '<' or '<=', but got ${op.value}`,
 				);
 			}
 			const right = this.term();
-			expr = new Binary(expr, op, right);
+			expr = new Binary(expr, op.token, right);
 		}
 		return expr;
 	}
@@ -155,13 +157,15 @@ export class Parser {
 		let expr = this.comparison();
 
 		while (this.match("NOTEQ", "EQEQ")) {
-			const { value: op } = this.previous();
-			if (op !== "!=" && op !== "==") {
-				throw TypeError(`The equality operator should be '!=' or '==', but got ${op}`);
+			const op = this.previous();
+			if (op.token !== "NOTEQ" && op.token !== "EQEQ") {
+				throw TypeError(
+					`The equality operator should be '!=' or '==', but got ${op.value}`,
+				);
 			}
 
 			const right = this.comparison();
-			expr = new Binary(expr, op, right);
+			expr = new Binary(expr, op.token, right);
 		}
 		return expr;
 	}
@@ -172,8 +176,8 @@ export class Parser {
 			const op = this.previous();
 			const right = this.equality();
 
-			if (op.value === "&&") {
-				expr = new Logical(expr, op.value, right);
+			if (op.token === "AND") {
+				expr = new Logical(expr, op.token, right);
 			} else {
 				throw Error("Expected `&&` but got " + JSON.stringify(op));
 			}
@@ -187,8 +191,8 @@ export class Parser {
 			const op = this.previous();
 			const right = this.and();
 
-			if (op.value === "||") {
-				expr = new Logical(expr, op.value, right);
+			if (op.token === "OR") {
+				expr = new Logical(expr, op.token, right);
 			} else {
 				throw Error("Expected `||` but got " + JSON.stringify(op));
 			}

@@ -1,6 +1,6 @@
 import { TTokens } from "../../lexer/tokens.ts";
 
-type Operator = TTokens["OPERATOR"][keyof TTokens["OPERATOR"]];
+type Operator = keyof TTokens["OPERATOR"];
 
 export interface ExprVisitor<TReturn = void> {
 	visitBinary(expr: Binary): TReturn;
@@ -18,7 +18,10 @@ export interface Expr {
 export class Binary implements Expr {
 	constructor(
 		public readonly left: Expr,
-		public readonly op: Operator,
+		public readonly op: Extract<
+			Operator,
+			"EQ" | "SUB" | "ADD" | "MUL" | "DIV" | "EQEQ" | "NOTEQ" | "LT" | "LTE" | "GT" | "GTE"
+		>,
 		public readonly right: Expr,
 	) {}
 	accept<V>(visitor: ExprVisitor<V>): V {
@@ -43,7 +46,10 @@ export class Literal<
 	}
 }
 export class Unary implements Expr {
-	constructor(public readonly op: Operator, public readonly right: Expr) {}
+	constructor(
+		public readonly op: Extract<Operator, "ADD" | "SUB" | "NOT">,
+		public readonly right: Expr,
+	) {}
 	accept<V>(visitor: ExprVisitor<V>): V {
 		return visitor.visitUnary(this);
 	}
@@ -63,7 +69,7 @@ export class Assign implements Expr {
 export class Logical implements Expr {
 	constructor(
 		public readonly left: Expr,
-		public readonly op: Extract<Operator, "||" | "&&">,
+		public readonly op: Extract<Operator, "AND" | "OR">,
 		public readonly right: Expr,
 	) {}
 	accept<V>(visitor: ExprVisitor<V>): V {

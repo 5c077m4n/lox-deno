@@ -51,7 +51,7 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 		const right = this.evaluate(binary.right);
 
 		switch (binary.op) {
-			case "+": {
+			case "ADD": {
 				if (typeof left.value === "number" && typeof right.value === "number") {
 					return new Literal(left.value + right.value);
 				} else if (
@@ -62,13 +62,13 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 				}
 				throw Error(`Cannot add type ${typeof left.value} to ${typeof right.value}`);
 			}
-			case "-": {
+			case "SUB": {
 				if (typeof left.value === "number" && typeof right.value === "number") {
 					return new Literal(left.value - right.value);
 				}
 				throw Error(`Cannot subtract type ${typeof left.value} from ${typeof right.value}`);
 			}
-			case "*": {
+			case "MUL": {
 				if (typeof left.value === "number" && typeof right.value === "number") {
 					return new Literal(left.value * right.value);
 				} else if (
@@ -82,37 +82,37 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 				}
 				throw Error(`Cannot multiply type ${typeof left.value} by ${typeof right.value}`);
 			}
-			case "/": {
+			case "DIV": {
 				if (typeof left.value === "number" && typeof right.value === "number") {
 					return new Literal(left.value / right.value);
 				}
 				throw Error(`Cannot divide type ${typeof left.value} by ${typeof right.value}`);
 			}
-			case "<": {
+			case "LT": {
 				if (typeof left.value === "number" && typeof right.value === "number") {
 					return new Literal(left.value < right.value);
 				}
 				throw Error(`Cannot compare type ${typeof left.value} to ${typeof right.value}`);
 			}
-			case "<=": {
+			case "LTE": {
 				if (typeof left.value === "number" && typeof right.value === "number") {
 					return new Literal(left.value <= right.value);
 				}
 				throw Error(`Cannot compare type ${typeof left.value} to ${typeof right.value}`);
 			}
-			case ">": {
+			case "GT": {
 				if (typeof left.value === "number" && typeof right.value === "number") {
 					return new Literal(left.value > right.value);
 				}
 				throw Error(`Cannot compare type ${typeof left.value} to ${typeof right.value}`);
 			}
-			case ">=": {
+			case "GTE": {
 				if (typeof left.value === "number" && typeof right.value === "number") {
 					return new Literal(left.value >= right.value);
 				}
 				throw Error(`Cannot compare type ${typeof left.value} to ${typeof right.value}`);
 			}
-			case "==": {
+			case "EQEQ": {
 				if (left.value === null && right.value === null) {
 					return new Literal(true);
 				} else if (typeof left.value === "number" && typeof right.value === "number") {
@@ -124,7 +124,7 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 				}
 				throw Error(`Cannot compare type ${typeof left.value} to ${typeof right.value}`);
 			}
-			case "!=": {
+			case "NOTEQ": {
 				if (typeof left.value === "number" && typeof right.value === "number") {
 					return new Literal(left.value !== right.value);
 				}
@@ -144,10 +144,10 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 	visitUnary(unary: Unary): Literal {
 		const right = this.evaluate(unary.right);
 		switch (unary.op) {
-			case "!": {
+			case "NOT": {
 				return new Literal(!right.isTruthy());
 			}
-			case "+": {
+			case "ADD": {
 				if (right.value === null) {
 					return new Literal(null);
 				} else if (typeof right.value === "number" || typeof right.value === "boolean") {
@@ -155,7 +155,7 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 				}
 				throw Error(`Could not cast type ${typeof right.value} to number`);
 			}
-			case "-": {
+			case "SUB": {
 				if (right.value === null) {
 					return new Literal(null);
 				} else if (typeof right.value === "number" || typeof right.value === "boolean") {
@@ -179,7 +179,7 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 	}
 	visitLogical(expr: Logical): Literal {
 		const left = this.evaluate(expr.left);
-		if (expr.op === "||") {
+		if (expr.op === "OR") {
 			if (left.isTruthy()) return left;
 		} else {
 			if (!left.isTruthy()) return left;
