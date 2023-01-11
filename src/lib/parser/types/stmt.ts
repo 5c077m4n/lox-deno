@@ -6,6 +6,7 @@ export interface StmtVisitor<TReturn = void> {
 	visitVariableDeclaration(expr: VariableDeclaration): TReturn;
 	visitBlock(expr: Block): TReturn;
 	visitIf(expr: If): TReturn;
+	visitWhile(expr: While): TReturn;
 }
 export interface Stmt {
 	accept<V>(visitor: StmtVisitor<V>): V;
@@ -43,5 +44,11 @@ export class If implements Stmt {
 	) {}
 	accept<V>(visitor: StmtVisitor<V>): V {
 		return visitor.visitIf(this);
+	}
+}
+export class While implements Stmt {
+	constructor(public readonly condition: Expr, public readonly body: Stmt) {}
+	accept<V>(visitor: StmtVisitor<V>): V {
+		return visitor.visitWhile(this);
 	}
 }

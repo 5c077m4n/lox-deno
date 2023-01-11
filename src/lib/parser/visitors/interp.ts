@@ -18,6 +18,7 @@ import {
 	Stmt,
 	StmtVisitor,
 	VariableDeclaration,
+	While,
 } from "../types/stmt.ts";
 
 export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
@@ -220,5 +221,11 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 		} else {
 			return new Literal(null);
 		}
+	}
+	visitWhile({ condition, body }: While): Literal {
+		while (this.evaluate(condition).isTruthy()) {
+			this.execute(body);
+		}
+		return new Literal(null);
 	}
 }

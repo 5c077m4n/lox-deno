@@ -1,6 +1,6 @@
 import { TAnyDetectionResult as TTokenType } from "../lexer/scan.ts";
 import { Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable } from "./types/expr.ts";
-import { Block, Expression, If, Print, Stmt, VariableDeclaration } from "./types/stmt.ts";
+import { Block, Expression, If, Print, Stmt, VariableDeclaration, While } from "./types/stmt.ts";
 
 export class Parser {
 	private history: TTokenType[] = [];
@@ -251,6 +251,14 @@ export class Parser {
 
 		return new If(condition, thenBranch, elseBranch);
 	}
+	private whileStmt(): Stmt {
+		this.assertNext("BRACKET_OPEN", "Expected a `(` after the `while` keyword");
+		const cond = this.expression();
+		this.assertNext("BRACKET_CLOSE", "Expected a `)` after the `while` condition");
+		const body = this.statement();
+
+		return new While(cond, body);
+	}
 	private statement(): Stmt {
 		if (this.match("PRINT")) {
 			return this.printStmt();
@@ -259,6 +267,8 @@ export class Parser {
 			return new Block(block);
 		} else if (this.match("IF")) {
 			return this.ifStmt();
+		} else if (this.match("WHILE")) {
+			return this.whileStmt();
 		} else {
 			return this.expressionStmt();
 		}
