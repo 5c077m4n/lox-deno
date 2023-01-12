@@ -1,6 +1,25 @@
 import { TAnyDetectionResult as TTokenType } from "../lexer/scan.ts";
-import { Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable } from "./types/expr.ts";
-import { Block, Expression, If, Print, Stmt, VariableDeclaration, While } from "./types/stmt.ts";
+import {
+	Assign,
+	Binary,
+	Call,
+	Expr,
+	Grouping,
+	Literal,
+	Logical,
+	Unary,
+	Variable,
+} from "./types/expr.ts";
+import {
+	Block,
+	Expression,
+	For,
+	If,
+	Print,
+	Stmt,
+	VariableDeclaration,
+	While,
+} from "./types/stmt.ts";
 
 export class Parser {
 	private history: TTokenType[] = [];
@@ -101,6 +120,26 @@ export class Parser {
 		} else {
 			throw TypeError(`Expected an expression but got '${JSON.stringify(this.current())}'`);
 		}
+	}
+	private finishCall(callee: Expr): Expr {
+		const args: Expr[] = [];
+		if (!this.check("BRACKET_CLOSE")) {
+			do {
+				const expr = this.expression();
+				args.push(expr);
+			} while (this.match("COMMA"));
+		}
+		this.assertNext("BRACKET_CLOSE", "Expected a `)` after the argument list");
+
+		return new Call(callee, args);
+	}
+	private call(): Expr {
+		let expr = this.primary();
+		while (this.match("BRACKET_OPEN")) {
+			expr = this.finishCall(expr);
+		}
+
+		return expr;
 	}
 	private unary(): Expr {
 		if (this.match("NOT", "ADD", "SUB")) {
@@ -259,6 +298,33 @@ export class Parser {
 
 		return new While(cond, body);
 	}
+	private forStmt(): Stmt {
+		this.assertNext("BRACKET_OPEN", "Expected a `(` after the for keyword");
+
+		let init: Stmt | undefined;
+		if (this.match("SEMICOLON")) {
+			init = undefined;
+		} else if (this.match("CONST", "LET")) {
+			init = this.varDecl();
+		} else {
+			init = this.expressionStmt();
+		}
+
+		let cond: Expr | undefined;
+		if (!this.check("SEMICOLON")) {
+			cond = this.expression();
+		}
+		this.assertNext("SEMICOLON", "Expected a `;` after the loop condition");
+
+		let inc: Expr | undefined;
+		if (!this.check("BRACKET_CLOSE")) {
+			inc = this.expression();
+		}
+		this.assertNext("BRACKET_CLOSE", "Expected a `)` after the loop's clause");
+
+		const body = this.statement();
+		return new For(init, cond, inc, body);
+	}
 	private statement(): Stmt {
 		if (this.match("PRINT")) {
 			return this.printStmt();
@@ -269,6 +335,8 @@ export class Parser {
 			return this.ifStmt();
 		} else if (this.match("WHILE")) {
 			return this.whileStmt();
+		} else if (this.match("FOR")) {
+			return this.forStmt();
 		} else {
 			return this.expressionStmt();
 		}

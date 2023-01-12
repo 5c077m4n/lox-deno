@@ -33,4 +33,7 @@ export class Env {
 		}
 		this.set(name, value);
 	}
+	remove(name: string): boolean {
+		return this.values.delete(name);
+	}
 }

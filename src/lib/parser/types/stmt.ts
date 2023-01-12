@@ -7,6 +7,7 @@ export interface StmtVisitor<TReturn = void> {
 	visitBlock(expr: Block): TReturn;
 	visitIf(expr: If): TReturn;
 	visitWhile(expr: While): TReturn;
+	visitFor(expr: For): TReturn;
 }
 export interface Stmt {
 	accept<V>(visitor: StmtVisitor<V>): V;
@@ -50,5 +51,16 @@ export class While implements Stmt {
 	constructor(public readonly condition: Expr, public readonly body: Stmt) {}
 	accept<V>(visitor: StmtVisitor<V>): V {
 		return visitor.visitWhile(this);
+	}
+}
+export class For implements Stmt {
+	constructor(
+		public readonly initializer: Stmt | undefined,
+		public readonly condition: Expr | undefined,
+		public readonly increment: Expr | undefined,
+		public readonly body: Stmt,
+	) {}
+	accept<V>(visitor: StmtVisitor<V>): V {
+		return visitor.visitFor(this);
 	}
 }

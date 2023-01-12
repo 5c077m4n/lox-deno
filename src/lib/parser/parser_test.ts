@@ -84,7 +84,7 @@ Deno.test("parser", async (testCtx) => {
 		assertEquals(errors, []);
 
 		const results = stmts.map((s) => INTERPRETER.execute(s));
-		assertEquals(results, [new Literal(null), new Literal(2)]);
+		assertEquals(results, [new Literal(1), new Literal(2)]);
 	});
 
 	await testCtx.step("set global var inside block", () => {
@@ -92,7 +92,7 @@ Deno.test("parser", async (testCtx) => {
 		assertEquals(errors, []);
 
 		const results = stmts.map((s) => INTERPRETER.execute(s));
-		assertEquals(results, [new Literal(null), new Literal(2)]);
+		assertEquals(results, [new Literal(1), new Literal(2)]);
 	});
 
 	await testCtx.step("undefined variable - should fail", () => {
@@ -131,5 +131,30 @@ Deno.test("parser", async (testCtx) => {
 
 		const results = stmts.map((s) => INTERPRETER.execute(s));
 		assertEquals(results, [new Literal(1)]);
+	});
+
+	await testCtx.step("while loop", () => {
+		const [stmts, errors] = parse(`
+			let i = 0;
+			while(i < 3) {
+				i = i + 1;
+			}
+		`);
+		assertEquals(errors, []);
+
+		const results = stmts.map((s) => INTERPRETER.execute(s));
+		assertEquals(results, [new Literal(0), new Literal(3)]);
+	});
+
+	await testCtx.step("for loop", () => {
+		const [stmts, errors] = parse(`
+			for (let j = 0; j < 3; j = j + 1) {
+				j;
+			}
+		`);
+		assertEquals(errors, []);
+
+		const results = stmts.map((s) => INTERPRETER.execute(s));
+		assertEquals(results, [new Literal(3)]);
 	});
 });

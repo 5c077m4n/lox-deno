@@ -13,6 +13,7 @@ import {
 import {
 	Block,
 	Expression,
+	For,
 	If,
 	Print,
 	Stmt,
@@ -26,22 +27,6 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 
 	private evaluate(expr: Expr): Literal {
 		return expr.accept(this);
-	}
-	private executeBlock(block: Stmt[], env: Env): Literal {
-		const prevEnv = this.env;
-
-		let result: Literal = new Literal(null);
-		try {
-			this.env = env;
-			for (const stmt of block) {
-				result = this.execute(stmt);
-			}
-		} catch (e) {
-			console.warn(e);
-		}
-		this.env = prevEnv;
-
-		return result;
 	}
 	execute(stmt: Stmt): Literal {
 		return stmt.accept(this);
@@ -192,6 +177,17 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 		const right = this.evaluate(expr.right);
 		return right;
 	}
+	visitCall(call: Call): Literal {
+		const callee = this.evaluate(call.callee);
+
+		const args: Literal[] = [];
+		for (const arg of call.args) {
+			const parsedArg = this.evaluate(arg);
+			args.push(parsedArg);
+		}
+
+		throw Error("Unimplemented");
+	}
 
 	visitExpression({ expr }: Expression): Literal {
 		return this.evaluate(expr);
@@ -210,10 +206,24 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 		}
 		this.env.define(name, initLiteral);
 
-		return new Literal(null);
+		return initLiteral;
 	}
 	visitBlock({ statments }: Block): Literal {
-		return this.executeBlock(statments, new Env(this.env));
+		const prevEnv = this.env;
+		const blockEnv = new Env(prevEnv);
+		this.env = blockEnv;
+
+		let result: Literal = new Literal(null);
+		try {
+			for (const stmt of statments) {
+				result = this.execute(stmt);
+			}
+		} catch (e) {
+			console.warn(e);
+		}
+		this.env = prevEnv;
+
+		return result;
 	}
 	visitIf({ condition, thenBranch, elseBranch }: If): Literal {
 		const cond = this.evaluate(condition);
@@ -226,9 +236,30 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 		}
 	}
 	visitWhile({ condition, body }: While): Literal {
+		let result: Literal = new Literal(null);
 		while (this.evaluate(condition).isTruthy()) {
-			this.execute(body);
+			result = this.execute(body);
 		}
-		return new Literal(null);
+		return result;
+	}
+	visitFor({ initializer, condition = new Literal(true), increment, body }: For): Literal {
+		if (increment) {
+			body = new Block([body, new Expression(increment)]);
+		}
+		if (initializer instanceof VariableDeclaration) {
+			this.visitVariableDeclaration(initializer);
+		} else {
+			throw Error("Expected a variable declaration here");
+		}
+
+		let result: Literal = new Literal(null);
+		while (this.evaluate(condition).isTruthy()) {
+			result = this.execute(body);
+		}
+		if (!this.env.remove(initializer.name)) {
+			throw Error(`Could not delete the loop's initial values "${initializer.name}"`);
+		}
+
+		return result;
 	}
 }
