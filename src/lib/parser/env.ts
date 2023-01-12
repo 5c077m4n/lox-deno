@@ -5,15 +5,20 @@ export class Env {
 
 	constructor(private readonly parent?: Env) {}
 
-	get(name: string): Literal {
+	get(name: string): Literal | undefined {
 		const value = this.values.get(name);
 
 		if (value) {
 			return value;
 		} else if (this.parent) {
 			return this.parent.get(name);
-		} else {
-			throw Error(`The requested param "${name}" isn't set`);
+		}
+	}
+	set(name: string, value: Literal): void {
+		if (this.values.has(name)) {
+			this.values.set(name, value);
+		} else if (this.parent) {
+			this.parent.set(name, value);
 		}
 	}
 	define(name: string, value: Literal): void {
@@ -23,9 +28,9 @@ export class Env {
 		this.values.set(name, value);
 	}
 	redefine(name: string, value: Literal): void {
-		if (!this.values.has(name)) {
+		if (!this.get(name)) {
 			throw Error(`The param "${name}" doesn't exist`);
 		}
-		this.values.set(name, value);
+		this.set(name, value);
 	}
 }

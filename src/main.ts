@@ -9,7 +9,6 @@ const INTERPRETER = new Interpreter();
 async function main() {
 	const { _: fileName, eval: evaluate } = parse(Deno.args, {
 		string: ["eval"],
-		default: { "print-ast": false },
 	});
 
 	let code: string;

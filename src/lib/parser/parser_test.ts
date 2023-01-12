@@ -84,26 +84,19 @@ Deno.test("parser", async (testCtx) => {
 		assertEquals(errors, []);
 
 		const results = stmts.map((s) => INTERPRETER.execute(s));
-		assertEquals(results, [new Literal(null), new Literal(null)]);
+		assertEquals(results, [new Literal(null), new Literal(2)]);
+	});
+
+	await testCtx.step("set global var inside block", () => {
+		const [stmts, errors] = parse("const b = 1; { b = b + 1; }");
+		assertEquals(errors, []);
+
+		const results = stmts.map((s) => INTERPRETER.execute(s));
+		assertEquals(results, [new Literal(null), new Literal(2)]);
 	});
 
 	await testCtx.step("undefined variable - should fail", () => {
-		const [stmts, errors] = parse("b + 1;");
-		assertEquals(errors, []);
-
-		try {
-			for (const stmt of stmts) {
-				INTERPRETER.execute(stmt);
-			}
-			throw new AssertionError("Unreachable");
-		} catch (e) {
-			assertExists(e);
-			assertEquals(e.message, 'The requested param "b" isn\'t set');
-		}
-	});
-
-	await testCtx.step("variable defined in block and used outside - should fail", () => {
-		const [stmts, errors] = parse("{ const c = 2; } c + 1;");
+		const [stmts, errors] = parse("c + 1;");
 		assertEquals(errors, []);
 
 		try {
@@ -117,11 +110,26 @@ Deno.test("parser", async (testCtx) => {
 		}
 	});
 
+	await testCtx.step("variable defined in block and used outside - should fail", () => {
+		const [stmts, errors] = parse("{ const d = 2; } d + 1;");
+		assertEquals(errors, []);
+
+		try {
+			for (const stmt of stmts) {
+				INTERPRETER.execute(stmt);
+			}
+			throw new AssertionError("Unreachable");
+		} catch (e) {
+			assertExists(e);
+			assertEquals(e.message, 'The requested param "d" isn\'t set');
+		}
+	});
+
 	await testCtx.step("if statement", () => {
 		const [stmts, errors] = parse("if (1) { 1; } else { 0; }");
 		assertEquals(errors, []);
 
 		const results = stmts.map((s) => INTERPRETER.execute(s));
-		assertEquals(results, [new Literal(null)]);
+		assertEquals(results, [new Literal(1)]);
 	});
 });

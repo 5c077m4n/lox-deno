@@ -27,10 +27,7 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 	private evaluate(expr: Expr): Literal {
 		return expr.accept(this);
 	}
-	execute(stmt: Stmt): Literal {
-		return stmt.accept(this);
-	}
-	executeBlock(block: Stmt[], env: Env): Literal {
+	private executeBlock(block: Stmt[], env: Env): Literal {
 		const prevEnv = this.env;
 
 		let result: Literal = new Literal(null);
@@ -45,6 +42,9 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 		this.env = prevEnv;
 
 		return result;
+	}
+	execute(stmt: Stmt): Literal {
+		return stmt.accept(this);
 	}
 
 	visitBinary(binary: Binary): Literal {
@@ -170,13 +170,17 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 		}
 	}
 	visitVariable({ name }: Variable): Literal {
-		return this.env.get(name);
+		const value = this.env.get(name);
+		if (!value) {
+			throw Error(`The requested param "${name}" isn't set`);
+		}
+		return value;
 	}
 	visitAssign({ name, value }: Assign): Literal {
 		const litValue = this.evaluate(value);
 		this.env.redefine(name, litValue);
 
-		return new Literal(null);
+		return litValue;
 	}
 	visitLogical(expr: Logical): Literal {
 		const left = this.evaluate(expr.left);
@@ -209,8 +213,7 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 		return new Literal(null);
 	}
 	visitBlock({ statments }: Block): Literal {
-		this.executeBlock(statments, new Env(this.env));
-		return new Literal(null);
+		return this.executeBlock(statments, new Env(this.env));
 	}
 	visitIf({ condition, thenBranch, elseBranch }: If): Literal {
 		const cond = this.evaluate(condition);
