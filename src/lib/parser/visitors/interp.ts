@@ -163,7 +163,9 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 	}
 	visitAssign({ name, value }: Assign): Literal {
 		const litValue = this.evaluate(value);
-		this.env.redefine(name, litValue);
+		if (!this.env.redefine(name, litValue)) {
+			throw Error(`The param "${name}" doesn't exist`);
+		}
 
 		return litValue;
 	}
@@ -204,7 +206,9 @@ export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 		} else {
 			initLiteral = new Literal(null);
 		}
-		this.env.define(name, initLiteral);
+		if (!this.env.define(name, initLiteral)) {
+			throw Error(`The param "${name}" already exists`);
+		}
 
 		return initLiteral;
 	}

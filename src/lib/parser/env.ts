@@ -2,7 +2,6 @@ import { Literal } from "./types/expr.ts";
 
 export class Env {
 	private readonly values: Map<string, Literal> = new Map();
-
 	constructor(private readonly parent?: Env) {}
 
 	get(name: string): Literal | undefined {
@@ -14,24 +13,32 @@ export class Env {
 			return this.parent.get(name);
 		}
 	}
-	set(name: string, value: Literal): void {
+	set(name: string, value: Literal): boolean {
 		if (this.values.has(name)) {
 			this.values.set(name, value);
+			return true;
 		} else if (this.parent) {
 			this.parent.set(name, value);
+			return true;
 		}
+		return false;
 	}
-	define(name: string, value: Literal): void {
+	define(name: string, value: Literal): boolean {
 		if (this.values.has(name)) {
-			throw Error(`The param "${name}" already exists`);
+			return false;
 		}
 		this.values.set(name, value);
+		return true;
 	}
-	redefine(name: string, value: Literal): void {
-		if (!this.get(name)) {
-			throw Error(`The param "${name}" doesn't exist`);
+	redefine(name: string, value: Literal): boolean {
+		if (this.values.has(name)) {
+			this.values.set(name, value);
+			return true;
+		} else if (this.parent) {
+			this.parent.redefine(name, value);
+			return true;
 		}
-		this.set(name, value);
+		return false;
 	}
 	remove(name: string): boolean {
 		return this.values.delete(name);
