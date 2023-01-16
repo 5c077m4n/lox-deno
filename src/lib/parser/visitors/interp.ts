@@ -2,6 +2,7 @@ import { Env } from "../env.ts";
 import {
 	Assign,
 	Binary,
+	Call,
 	Expr,
 	ExprVisitor,
 	Grouping,
@@ -24,6 +25,7 @@ import {
 
 export class Interpreter implements ExprVisitor<Literal>, StmtVisitor<Literal> {
 	private env: Env = new Env();
+	private globals: Env = new Env();
 
 	private evaluate(expr: Expr): Literal {
 		return expr.accept(this);

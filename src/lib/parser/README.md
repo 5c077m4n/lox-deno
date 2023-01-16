@@ -12,7 +12,9 @@
 | binary     | expression operator expression                                            |
 | operator   | `==` \| `!=` \| `<` \| `<=` \| `>` \| `>=` \| `+` \| `-` \| `*` \| `/`    |
 | comparison | term ( ( `>` \| `>=` \| `<` \| `<=` ) term ) \*                           |
-| unary      | ( `!` \| `+` \| `-` ) \| primary                                          |
+| unary      | ( `!` \| `+` \| `-` ) unary \| call                                       |
+| call       | primary ( `(` arguments ? `)` )\*                                         |
+| arguments  | expression ( `,` expression )\*                                           |
 | primary    | NUMBER \| STRING \| BOOLEAN \| `null` \| `(` expression `)` \| IDENTIFIER |
 
 # Statements

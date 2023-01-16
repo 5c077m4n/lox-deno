@@ -10,6 +10,7 @@ export interface ExprVisitor<TReturn = void> {
 	visitVariable(expr: Variable): TReturn;
 	visitAssign(expr: Assign): TReturn;
 	visitLogical(expr: Logical): TReturn;
+	visitCall(expr: Call): TReturn;
 }
 export interface Expr {
 	accept<V>(visitor: ExprVisitor<V>): V;
@@ -74,5 +75,11 @@ export class Logical implements Expr {
 	) {}
 	accept<V>(visitor: ExprVisitor<V>): V {
 		return visitor.visitLogical(this);
+	}
+}
+export class Call implements Expr {
+	constructor(public readonly callee: Expr, public readonly args: Expr[]) {}
+	accept<V>(visitor: ExprVisitor<V>): V {
+		return visitor.visitCall(this);
 	}
 }

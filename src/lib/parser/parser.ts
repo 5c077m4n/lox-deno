@@ -150,7 +150,7 @@ export class Parser {
 			const right = this.unary();
 			return new Unary(op.token, right);
 		}
-		return this.primary();
+		return this.call();
 	}
 	private factor(): Expr {
 		let expr = this.unary();
