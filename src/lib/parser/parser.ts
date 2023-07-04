@@ -81,8 +81,14 @@ export class Parser {
 
 			const { token } = this.current();
 			if (
-				token === "CLASS" || token === "FUNCTION" || token === "CONST" || token === "LET" ||
-				token === "FOR" || token === "IF" || token === "WHILE" || token === "PRINT" ||
+				token === "CLASS" ||
+				token === "FUNCTION" ||
+				token === "CONST" ||
+				token === "LET" ||
+				token === "FOR" ||
+				token === "IF" ||
+				token === "WHILE" ||
+				token === "PRINT" ||
 				token === "RETURN"
 			) {
 				return;
@@ -105,7 +111,9 @@ export class Parser {
 				throw TypeError(`Expected a number but got ${value}`);
 			}
 			return new Literal(numericValue);
-		} else if (this.match("STRING_SINGLE", "STRING_DOUBLE", "STRING_TEMPLATE")) {
+		} else if (
+			this.match("STRING_SINGLE", "STRING_DOUBLE", "STRING_TEMPLATE")
+		) {
 			const { value } = this.previous();
 			return new Literal(value);
 		} else if (this.match("NULL")) {
@@ -118,7 +126,9 @@ export class Parser {
 			const { value } = this.previous();
 			return new Variable(value);
 		} else {
-			throw TypeError(`Expected an expression but got '${JSON.stringify(this.current())}'`);
+			throw TypeError(
+				`Expected an expression but got '${JSON.stringify(this.current())}'`,
+			);
 		}
 	}
 	private finishCall(callee: Expr): Expr {
@@ -145,7 +155,9 @@ export class Parser {
 		if (this.match("NOT", "ADD", "SUB")) {
 			const op = this.previous();
 			if (op.token !== "NOT" && op.token !== "ADD" && op.token !== "SUB") {
-				throw TypeError(`The unary operator should be '!', '+' or '-', but got ${op}`);
+				throw TypeError(
+					`The unary operator should be '!', '+' or '-', but got ${op}`,
+				);
 			}
 			const right = this.unary();
 			return new Unary(op.token, right);
@@ -157,7 +169,9 @@ export class Parser {
 		while (this.match("MUL", "DIV")) {
 			const op = this.previous();
 			if (op.token !== "MUL" && op.token !== "DIV") {
-				throw TypeError(`The factor operator should be '*' or '/', but got ${op.value}`);
+				throw TypeError(
+					`The factor operator should be '*' or '/', but got ${op.value}`,
+				);
 			}
 			const right = this.unary();
 			expr = new Binary(expr, op.token, right);
@@ -169,7 +183,9 @@ export class Parser {
 		while (this.match("SUB", "ADD")) {
 			const op = this.previous();
 			if (op.token !== "SUB" && op.token !== "ADD") {
-				throw TypeError(`The term operator should be '-' or '+', but got ${op.value}`);
+				throw TypeError(
+					`The term operator should be '-' or '+', but got ${op.value}`,
+				);
 			}
 			const right = this.factor();
 			expr = new Binary(expr, op.token, right);
@@ -181,7 +197,10 @@ export class Parser {
 		while (this.match("GT", "GTE", "LT", "LTE")) {
 			const op = this.previous();
 			if (
-				op.token !== "GT" && op.token !== "GTE" && op.token !== "LT" && op.token !== "LTE"
+				op.token !== "GT" &&
+				op.token !== "GTE" &&
+				op.token !== "LT" &&
+				op.token !== "LTE"
 			) {
 				throw TypeError(
 					`The comparison operator should be '>', '>=', '<' or '<=', but got ${op.value}`,
@@ -293,7 +312,10 @@ export class Parser {
 	private whileStmt(): Stmt {
 		this.assertNext("BRACKET_OPEN", "Expected a `(` after the `while` keyword");
 		const cond = this.expression();
-		this.assertNext("BRACKET_CLOSE", "Expected a `)` after the `while` condition");
+		this.assertNext(
+			"BRACKET_CLOSE",
+			"Expected a `)` after the `while` condition",
+		);
 		const body = this.statement();
 
 		return new While(cond, body);
